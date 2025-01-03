@@ -366,10 +366,11 @@ def generate_experiment_cfgs(id):
     # Final DAFormer (Table 6)
     # -------------------------------------------------------------------------
     elif id == 7:
-        seeds = [0, 1, 2]
+        # seeds = [0, 1, 2]
+        seeds = [0]
         datasets = [
-            # ('gta', 'cityscapes'),  # already run in exp 6
-            ('synthia', 'cityscapes'),
+            ('gta', 'cityscapes'),  # already run in exp 6
+            # ('synthia', 'cityscapes'),
         ]
         architecture, backbone = ('daformer_sepaspp', 'mitb5')
         uda = 'dacs_a999_fdthings'
