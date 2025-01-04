@@ -19,7 +19,7 @@ gta_train_pipeline = [
     dict(type='Normalize', **img_norm_cfg),
     dict(type='Pad', size=crop_size, pad_val=0, seg_pad_val=255),
     dict(type='DefaultFormatBundle'),
-    dict(type='Collect', keys=['img', 'gt_semantic_seg']),
+    dict(type='Collect', keys=['img', 'gt_semantic_seg']),  # what is the difference between Collect and PackSegInputs
 ]
 cityscapes_train_pipeline = [
     dict(type='LoadImageFromFile'),

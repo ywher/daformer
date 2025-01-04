@@ -1,2 +1,2 @@
 # gta 2 cityscapes
-python run_experiments.py --exp 7
+CUDA_VISIBLE_DEVICES=1 python run_experiments.py --exp 7

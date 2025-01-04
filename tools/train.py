@@ -24,7 +24,7 @@ from mmseg.utils import collect_env, get_root_logger
 from mmseg.utils.collect_env import gen_code_archive
 
 
-def parse_args(args):
+def parse_args(args):  # only pass the config file to the first one
     parser = argparse.ArgumentParser(description='Train a segmentor')
     parser.add_argument('config', help='train config file path')
     parser.add_argument('--work-dir', help='the dir to save logs and models')
@@ -94,7 +94,7 @@ def main(args):
     if args.gpu_ids is not None:
         cfg.gpu_ids = args.gpu_ids
     else:
-        cfg.gpu_ids = range(1) if args.gpus is None else range(args.gpus)
+        cfg.gpu_ids = range(1) if args.gpus is None else range(args.gpus)  # (0,1)
 
     # init distributed env first, since logger depends on the dist info.
     if args.launcher == 'none':

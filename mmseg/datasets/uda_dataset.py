@@ -43,11 +43,11 @@ def get_rcs_class_probs(data_root, temperature):
 class UDADataset(object):
 
     def __init__(self, source, target, cfg):
-        self.source = source
-        self.target = target
-        self.ignore_index = target.ignore_index
-        self.CLASSES = target.CLASSES
-        self.PALETTE = target.PALETTE
+        self.source = source  # gta
+        self.target = target  # city
+        self.ignore_index = target.ignore_index  # 255
+        self.CLASSES = target.CLASSES  # 19 class names
+        self.PALETTE = target.PALETTE  # 19 class colors
         assert target.ignore_index == source.ignore_index
         assert target.CLASSES == source.CLASSES
         assert target.PALETTE == source.PALETTE
@@ -55,9 +55,9 @@ class UDADataset(object):
         rcs_cfg = cfg.get('rare_class_sampling')
         self.rcs_enabled = rcs_cfg is not None
         if self.rcs_enabled:
-            self.rcs_class_temp = rcs_cfg['class_temp']
-            self.rcs_min_crop_ratio = rcs_cfg['min_crop_ratio']
-            self.rcs_min_pixels = rcs_cfg['min_pixels']
+            self.rcs_class_temp = rcs_cfg['class_temp']  # 0.01
+            self.rcs_min_crop_ratio = rcs_cfg['min_crop_ratio']  # 0.5
+            self.rcs_min_pixels = rcs_cfg['min_pixels']  # 3000
 
             self.rcs_classes, self.rcs_classprob = get_rcs_class_probs(
                 cfg['source']['data_root'], self.rcs_class_temp)
@@ -78,7 +78,7 @@ class UDADataset(object):
                 self.samples_with_class[c] = []
                 for file, pixels in samples_with_class_and_n[c]:
                     if pixels > self.rcs_min_pixels:
-                        self.samples_with_class[c].append(file.split('/')[-1])
+                        self.samples_with_class[c].append(file.split('/')[-1])  # 00001_labelTrainIds.png
                 assert len(self.samples_with_class[c]) > 0
             self.file_to_idx = {}
             for i, dic in enumerate(self.source.img_infos):
@@ -92,7 +92,7 @@ class UDADataset(object):
         f1 = np.random.choice(self.samples_with_class[c])
         i1 = self.file_to_idx[f1]
         s1 = self.source[i1]
-        if self.rcs_min_crop_ratio > 0:
+        if self.rcs_min_crop_ratio > 0:  # 0.5
             for j in range(10):
                 n_class = torch.sum(s1['gt_semantic_seg'].data == c)
                 # mmcv.print_log(f'{j}: {n_class}', 'mmseg')
@@ -102,7 +102,7 @@ class UDADataset(object):
                 # Please note, that self.source.__getitem__(idx) applies the
                 # preprocessing pipeline to the loaded image, which includes
                 # RandomCrop, and results in a new crop of the image.
-                s1 = self.source[i1]
+                s1 = self.source[i1]  # new random crop of the source image
         i2 = np.random.choice(range(len(self.target)))
         s2 = self.target[i2]
 

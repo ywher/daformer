@@ -77,7 +77,7 @@ if __name__ == '__main__':
 
     # Training with Generated Configs from experiments.py
     if args.exp is not None:
-        exp_name = f'{args.machine}-exp{args.exp}'
+        exp_name = f'{args.machine}-exp{args.exp}'  # local-exp7
         cfgs = generate_experiment_cfgs(args.exp)
         # Generate Configs
         for i, cfg in enumerate(cfgs):
@@ -88,11 +88,12 @@ if __name__ == '__main__':
                     cfg.setdefault('uda', {})['debug_img_interval'] = 10
                     # cfg.setdefault('uda', {})['print_grad_magnitude'] = True
             # Generate Config File
-            cfg['name'] = f'{datetime.now().strftime("%y%m%d_%H%M")}_' \
-                          f'{cfg["name"]}_{str(uuid.uuid4())[:5]}'
+            # cfg['name'] = f'{datetime.now().strftime("%y%m%d_%H%M")}_' \
+                        #   f'{cfg["name"]}_{str(uuid.uuid4())[:5]}'
+            cfg['name'] = f'{datetime.now().strftime("%y%m%d_%H%M")}_{cfg["name"]}'
             cfg['work_dir'] = os.path.join('work_dirs', exp_name, cfg['name'])
             cfg['git_rev'] = get_git_hash()
-            cfg['_base_'] = ['../../' + e for e in cfg['_base_']]
+            cfg['_base_'] = ['../../' + e for e in cfg['_base_']]  # Relative Path
             cfg_out_file = f"{GEN_CONFIG_DIR}/{exp_name}/{cfg['name']}.json"
             os.makedirs(os.path.dirname(cfg_out_file), exist_ok=True)
             assert not os.path.isfile(cfg_out_file)

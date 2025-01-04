@@ -20,6 +20,7 @@ def get_model_base(architecture, backbone):
             'r101v1c': f'_base_/models/{architecture}_r101.py',
         }[backbone]
     if 'daformer_' in architecture and 'mitb5' in backbone:
+        # daformer_sepaspp_mitb5
         return f'_base_/models/{architecture}_mitb5.py'
     if 'upernet' in architecture and 'mit' in backbone:
         return f'_base_/models/{architecture}_mit.py'
@@ -41,6 +42,10 @@ def get_pretraining_file(backbone):
         return 'pretrained/mit_b4.pth'
     if 'mitb3' in backbone:
         return 'pretrained/mit_b3.pth'
+    if 'dinov2_512' in backbone:
+        return 'pretrained/dinov2_converted.pth'
+    if 'dinov2_1024' in backbone:
+        return 'pretrained/dinov2_converted_1024x1024.pth'
     if 'r101v1c' in backbone:
         return 'open-mmlab://resnet101_v1c'
     return {
@@ -56,7 +61,7 @@ def get_pretraining_file(backbone):
 def get_backbone_cfg(backbone):
     for i in [1, 2, 3, 4, 5]:
         if backbone == f'mitb{i}':
-            return dict(type=f'mit_b{i}')
+            return dict(type=f'mit_b{i}')  # mit_b5
         if backbone == f'mitb{i}-del':
             return dict(_delete_=True, type=f'mit_b{i}')
     return {
@@ -129,12 +134,12 @@ def generate_experiment_cfgs(id):
             cfg['seed'] = seed
 
         # Setup model config
-        architecture_mod = architecture
-        model_base = get_model_base(architecture_mod, backbone)
-        cfg['_base_'].append(model_base)
+        architecture_mod = architecture  # daformer_sepaspp
+        model_base = get_model_base(architecture_mod, backbone)  # Get model base， '_base_/models/daformer_sepaspp_mitb5.py'
+        cfg['_base_'].append(model_base)  # Add model base
         cfg['model'] = {
-            'pretrained': get_pretraining_file(backbone),
-            'backbone': get_backbone_cfg(backbone),
+            'pretrained': get_pretraining_file(backbone),  # 'pretrained/mit_b5.pth'
+            'backbone': get_backbone_cfg(backbone),  # dict(type=mit_b5)
         }
         if 'sfa_' in architecture_mod:
             cfg['model']['neck'] = dict(type='SegFormerAdapter')
@@ -151,33 +156,33 @@ def generate_experiment_cfgs(id):
                 f'_base_/datasets/{source}_to_{target}_{crop}.py')
         else:
             cfg['_base_'].append(
-                f'_base_/datasets/uda_{source}_to_{target}_{crop}.py')
-            cfg['_base_'].append(f'_base_/uda/{uda}.py')
-        if 'dacs' in uda and plcrop:
+                f'_base_/datasets/uda_{source}_to_{target}_{crop}.py')  # uda_gta_to_cityscapes_512x512
+            cfg['_base_'].append(f'_base_/uda/{uda}.py')  # dacs_a999_fdthings
+        if 'dacs' in uda and plcrop:  # True
             cfg.setdefault('uda', {})
-            cfg['uda']['pseudo_weight_ignore_top'] = 15
-            cfg['uda']['pseudo_weight_ignore_bottom'] = 120
+            cfg['uda']['pseudo_weight_ignore_top'] = 15  # ignore the top 15 lines of pixel in pseudo label
+            cfg['uda']['pseudo_weight_ignore_bottom'] = 120  # ignore the bottom 120 lines of pixel in pseudo label
         cfg['data'] = dict(
-            samples_per_gpu=batch_size,
-            workers_per_gpu=workers_per_gpu,
+            samples_per_gpu=batch_size,  # 2
+            workers_per_gpu=workers_per_gpu,  # 4
             train={})
         if 'dacs' in uda and rcs_T is not None:
-            cfg = setup_rcs(cfg, rcs_T)
+            cfg = setup_rcs(cfg, rcs_T)  # set up rare class sampling
 
         # Setup optimizer and schedule
         if 'dacs' in uda:
             cfg['optimizer_config'] = None  # Don't use outer optimizer
 
         cfg['_base_'].extend(
-            [f'_base_/schedules/{opt}.py', f'_base_/schedules/{schedule}.py'])
-        cfg['optimizer'] = {'lr': lr}
+            [f'_base_/schedules/{opt}.py', f'_base_/schedules/{schedule}.py'])  # adamw.py, poly10warm.py
+        cfg['optimizer'] = {'lr': lr}  # 6e-05
         cfg['optimizer'].setdefault('paramwise_cfg', {})
         cfg['optimizer']['paramwise_cfg'].setdefault('custom_keys', {})
         opt_param_cfg = cfg['optimizer']['paramwise_cfg']['custom_keys']
-        if pmult:
-            opt_param_cfg['head'] = dict(lr_mult=10.)
+        if pmult:  # True
+            opt_param_cfg['head'] = dict(lr_mult=10.)  # head lr is 10 times of the base lr
         if 'mit' in backbone:
-            opt_param_cfg['pos_block'] = dict(decay_mult=0.)
+            opt_param_cfg['pos_block'] = dict(decay_mult=0.)  # decay_mult=0 means no decay
             opt_param_cfg['norm'] = dict(decay_mult=0.)
 
         # Setup runner
@@ -187,27 +192,27 @@ def generate_experiment_cfgs(id):
         cfg['evaluation'] = dict(interval=iters // 10, metric='mIoU')
 
         # Construct config name
-        uda_mod = uda
-        if 'dacs' in uda and rcs_T is not None:
+        uda_mod = uda  # dacs_a999_fdthings
+        if 'dacs' in uda and rcs_T is not None:  # rcs_T=0.01
             uda_mod += f'_rcs{rcs_T}'
         if 'dacs' in uda and plcrop:
             uda_mod += '_cpl'
         cfg['name'] = f'{source}2{target}_{uda_mod}_{architecture_mod}_' \
-                      f'{backbone}_{schedule}'
-        cfg['exp'] = id
-        cfg['name_dataset'] = f'{source}2{target}'
-        cfg['name_architecture'] = f'{architecture_mod}_{backbone}'
-        cfg['name_encoder'] = backbone
-        cfg['name_decoder'] = architecture_mod
-        cfg['name_uda'] = uda_mod
+                      f'{backbone}_{schedule}'  # gta2cityscapes_dacs_a999_fdthings_daformer_sepaspp_mitb5_poly10warm
+        cfg['exp'] = id  # 7
+        cfg['name_dataset'] = f'{source}2{target}'  # gta2cityscapes
+        cfg['name_architecture'] = f'{architecture_mod}_{backbone}'  # daformer_sepaspp_mitb5
+        cfg['name_encoder'] = backbone  # mitb5
+        cfg['name_decoder'] = architecture_mod  # daformer_sepaspp
+        cfg['name_uda'] = uda_mod  # dacs_a999_fdthings
         cfg['name_opt'] = f'{opt}_{lr}_pm{pmult}_{schedule}' \
-                          f'_{n_gpus}x{batch_size}_{iters // 1000}k'
+                          f'_{n_gpus}x{batch_size}_{iters // 1000}k'  # adamw_6e-05_pmTrue_poly10_1x2_40k
         if seed is not None:
-            cfg['name'] += f'_s{seed}'
+            cfg['name'] += f'_s{seed}'  # gta2cityscapes_dacs_a999_fdthings_daformer_sepaspp_mitb5_poly10warm_s0
         cfg['name'] = cfg['name'].replace('.', '').replace('True', 'T') \
             .replace('False', 'F').replace('cityscapes', 'cs') \
             .replace('synthia', 'syn') \
-            .replace('darkzurich', 'dzur')
+            .replace('darkzurich', 'dzur')  # gta2cs_dacs_a999_fdthings_daformer_sepaspp_mitb5_poly10warm_s0
         return cfg
 
     # -------------------------------------------------------------------------
@@ -374,7 +379,7 @@ def generate_experiment_cfgs(id):
         ]
         architecture, backbone = ('daformer_sepaspp', 'mitb5')
         uda = 'dacs_a999_fdthings'
-        rcs_T = 0.01
+        rcs_T = 0.01  # rare class sampling temperature
         plcrop = True
         for (source, target), seed in \
                 itertools.product(datasets, seeds):

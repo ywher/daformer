@@ -115,8 +115,7 @@ class CityscapesDataset(CustomDataset):
 
         assert isinstance(results, list), 'results must be a list'
         assert len(results) == len(self), (
-            'The length of results is not equal to the dataset len: '
-            f'{len(results)} != {len(self)}')
+            'The length of results is not equal to the dataset len: {len(results)} != {len(self)}')
 
         if imgfile_prefix is None:
             tmp_dir = tempfile.TemporaryDirectory()
