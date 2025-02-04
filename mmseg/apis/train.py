@@ -85,6 +85,7 @@ def train_segmentor(model,
 
     # build runner
     optimizer = build_optimizer(model, cfg.optimizer)
+    logger.info(f'Optimizer initiated.')
 
     if cfg.get('runner') is None:
         cfg.runner = {'type': 'IterBasedRunner', 'max_iters': cfg.total_iters}

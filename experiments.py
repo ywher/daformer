@@ -346,21 +346,21 @@ def generate_experiment_cfgs(id):
     # Decoder Study (Table 7)
     # -------------------------------------------------------------------------
     elif id == 6:
-        seeds = [0, 1, 2]
+        seeds = [0]  # seeds = [0, 1, 2]
         udas = [
-            'dacs_a999_fdthings',
+            # 'dacs_a999_fdthings',
             'target-only',
         ]
         rcs_T = 0.01
         plcrop = True
         models = [
-            # ('segformer', 'mitb5'),  # already run in exp 5
-            ('daformer_conv1', 'mitb5'),  # this is segformer with 256 channels
-            ('upernet', 'mitb5'),
-            ('upernet_ch256', 'mitb5'),
-            ('daformer_isa', 'mitb5'),
-            ('daformer_sepaspp_bottleneck', 'mitb5'),  # Context only at F4
-            ('daformer_aspp', 'mitb5'),  # DAFormer w/o DSC
+            ### ('segformer', 'mitb5'),  # already run in exp 5
+            # ('daformer_conv1', 'mitb5'),  # this is segformer with 256 channels
+            # ('upernet', 'mitb5'),
+            # ('upernet_ch256', 'mitb5'),
+            # ('daformer_isa', 'mitb5'),
+            # ('daformer_sepaspp_bottleneck', 'mitb5'),  # Context only at F4
+            # ('daformer_aspp', 'mitb5'),  # DAFormer w/o DSC
             ('daformer_sepaspp', 'mitb5'),  # DAFormer
         ]
         for (source, target), (architecture, backbone), uda, seed in \

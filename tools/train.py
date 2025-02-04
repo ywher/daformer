@@ -143,6 +143,11 @@ def main(args):
     model = build_train_model(
         cfg, train_cfg=cfg.get('train_cfg'), test_cfg=cfg.get('test_cfg'))
     model.init_weights()
+    
+    # save the model decoder head state dict
+    # decoder_head_state_dict = model.model.decode_head.state_dict()
+    # torch.save(decoder_head_state_dict, 'DAFormerHead.pth')
+    # logger.info('save decoder head state dict to DAFormerHead.pth')
 
     logger.info(model)
 
